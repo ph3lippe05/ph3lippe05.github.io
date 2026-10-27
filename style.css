@@ -1315,7 +1315,7 @@ input[type="number"]:focus {
   height: 100vh;
   height: 100dvh;
   max-height: 100dvh;
-  display: flex;
+  /* display is controlled by .screen / .screen.active classes */
   flex-direction: column;
   justify-content: space-between;
   padding: 8px 10px;
