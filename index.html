@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Blackjack Companion - Wirtualne Żetony do Gry</title>
+  <meta name="description" content="Darmowy wirtualny bankroll i żetony do gry w blackjacka ze znajomymi. Brak backendu, dołączanie kodem QR.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- PeerJS & QRCode CDN -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Background Casino Felt & Ambience -->
+  <div class="felt-background"></div>
+  <div class="felt-overlay"></div>
+
+  <!-- Main Container -->
+  <div id="app" class="app-container">
+    
+    <!-- 1. WELCOME SCREEN -->
+    <section id="screen-welcome" class="screen active">
+      <header class="hero-header">
+        <div class="casino-badge">BLACKJACK TABLE COMPANION</div>
+        <h1 class="logo-title">21<span class="gold-text">CHIPS</span></h1>
+        <p class="tagline">Wirtualne żetony do gry przy prawdziwym stole z kartami</p>
+      </header>
+
+      <div class="card-glass action-card">
+        <div class="choice-grid">
+          <!-- Create Room (Host / Dealer) -->
+          <button id="btn-show-create" class="role-btn dealer-role">
+            <div class="role-icon">🎩</div>
+            <div class="role-info">
+              <h3>Jestem Krupierem</h3>
+              <p>Stwórz nowy stół, ustal zasady i zarządzaj żetonami</p>
+            </div>
+            <span class="gold-arrow">➔</span>
+          </button>
+
+          <!-- Join Room (Player) -->
+          <button id="btn-show-join" class="role-btn player-role">
+            <div class="role-icon">📱</div>
+            <div class="role-info">
+              <h3>Jestem Graczem</h3>
+              <p>Dołącz kodem lub zeskanuj kod QR krupiera</p>
+            </div>
+            <span class="gold-arrow">➔</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Feature highlights -->
+      <footer class="app-footer">
+        <div class="feature-item"><span>⚡</span> 100% P2P Bez serwera</div>
+        <div class="feature-item"><span>🆓</span> W pełni darmowe</div>
+        <div class="feature-item"><span>📲</span> Błyskawiczny kod QR</div>
+      </footer>
+    </section>
+
+    <!-- 2. CREATE ROOM MODAL / SCREEN -->
+    <section id="screen-create" class="screen">
+      <div class="card-glass setup-card">
+        <div class="screen-header">
+          <button class="btn-back" data-target="screen-welcome">← Wróć</button>
+          <h2>Konfiguracja Stołu</h2>
+        </div>
+
+        <form id="form-create-room">
+          <div class="form-group">
+            <label for="input-starting-chips">Początkowe żetony gracza</label>
+            <div class="input-chips-stepper">
+              <button type="button" class="btn-step" data-target="input-starting-chips" data-step="-250">-</button>
+              <input type="number" id="input-starting-chips" value="1000" min="100" max="100000" step="50" required>
+              <button type="button" class="btn-step" data-target="input-starting-chips" data-step="250">+</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-min-bet">Minimalny zakład</label>
+              <input type="number" id="input-min-bet" value="10" min="5" max="1000" step="5" required>
+            </div>
+            <div class="form-group">
+              <label for="input-max-bet">Maksymalny zakład</label>
+              <input type="number" id="input-max-bet" value="500" min="10" max="100000" step="10" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Wypłata za Blackjacka</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill active">
+                <input type="radio" name="bj-payout" value="1.5" checked>
+                <span>3:2 (Standard)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="bj-payout" value="1.2">
+                <span>6:5 (Kasyno)</span>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary btn-block">
+            <span>Utwórz Stół</span>
+            <span class="btn-icon">🎰</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 3. JOIN ROOM SCREEN -->
+    <section id="screen-join" class="screen">
+      <div class="card-glass setup-card">
+        <div class="screen-header">
+          <button class="btn-back" data-target="screen-welcome">← Wróć</button>
+          <h2>Dołącz do Gry</h2>
+        </div>
+
+        <form id="form-join-room">
+          <div class="form-group">
+            <label for="input-player-name">Twój Nick</label>
+            <input type="text" id="input-player-name" placeholder="np. Filip, James Bond..." maxlength="15" required autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>Wybierz Awatar</label>
+            <div id="avatar-selector" class="avatar-grid">
+              <button type="button" class="avatar-btn active" data-avatar="😎">😎</button>
+              <button type="button" class="avatar-btn" data-avatar="🤠">🤠</button>
+              <button type="button" class="avatar-btn" data-avatar="🎩">🎩</button>
+              <button type="button" class="avatar-btn" data-avatar="🕵️">🕵️</button>
+              <button type="button" class="avatar-btn" data-avatar="🦁">🦁</button>
+              <button type="button" class="avatar-btn" data-avatar="🐺">🐺</button>
+              <button type="button" class="avatar-btn" data-avatar="🦊">🦊</button>
+              <button type="button" class="avatar-btn" data-avatar="👑">👑</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-room-code">Kod Pokoju (4 znaki)</label>
+            <input type="text" id="input-room-code" placeholder="np. 7429" maxlength="10" required class="room-code-input" autocomplete="off" autocapitalize="characters">
+          </div>
+
+          <button type="submit" class="btn-primary btn-block" id="btn-submit-join">
+            <span>Zajmij Miejsce</span>
+            <span class="btn-icon">🎲</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 4. DEALER / HOST SCREEN -->
+    <section id="screen-dealer" class="screen">
+      <!-- Top Bar -->
+      <header class="table-topbar">
+        <div class="table-brand">
+          <span class="role-badge">KRUPIER</span>
+          <span class="table-title">Stół #<span id="dealer-room-display">----</span></span>
+        </div>
+        
+        <div class="topbar-actions">
+          <button id="btn-toggle-sound" class="btn-icon-circle" title="Dźwięk">🔊</button>
+          <button id="btn-open-qr" class="btn-pill btn-gold">
+            <span>QR / Kod</span> 📲
+          </button>
+          <button id="btn-table-settings" class="btn-icon-circle" title="Statystyki">📊</button>
+        </div>
+      </header>
+
+      <!-- Round Control Bar -->
+      <div class="dealer-phase-controller">
+        <div class="phase-info">
+          <span class="phase-indicator" id="dealer-phase-badge">FAZA: ZAKŁADY</span>
+          <span class="round-counter">Rozdanie: <strong id="dealer-round-num">1</strong></span>
+        </div>
+
+        <div class="phase-action-buttons">
+          <button id="btn-lock-bets" class="btn-phase btn-accent">
+            <span>🔒 Zablokuj Zakłady</span>
+          </button>
+          <button id="btn-new-round" class="btn-phase btn-green" disabled>
+            <span>✨ Nowe Rozdanie</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Global Actions for Dealer -->
+      <div class="quick-dealer-bar">
+        <span class="quick-label">Szybkie rozliczenie:</span>
+        <button id="btn-quick-dealer-bj" class="btn-quick-action" title="Wszyscy gracze bez BJ przegrywają">
+          ♠️ Krupier ma BJ
+        </button>
+        <button id="btn-quick-dealer-bust" class="btn-quick-action" title="Wszyscy gracze w grze wygrywają">
+          💥 Krupier Fura (Bust)
+        </button>
+      </div>
+
+      <!-- Active Players at the Table -->
+      <main class="table-players-container">
+        <div class="table-felt-center">
+          <div class="dealer-felt-logo">BLACKJACK PAYS 3 TO 2</div>
+          <div class="dealer-felt-sub">Dealer must stand on 17 and draw to 16</div>
+        </div>
+
+        <div id="dealer-players-list" class="dealer-players-grid">
+          <!-- Dynamically injected player cards -->
+          <div class="no-players-placeholder">
+            <div class="pulse-ring"></div>
+            <p>Oczekiwanie na graczy...</p>
+            <p class="sub-text">Pokaż kod QR lub podaj kod pokoju znajomym</p>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- 5. PLAYER SCREEN -->
+    <section id="screen-player" class="screen">
+      <!-- Player Top Bar -->
+      <header class="player-topbar">
+        <div class="player-profile">
+          <div class="player-avatar-badge" id="player-view-avatar">😎</div>
+          <div class="player-name-wrap">
+            <span class="player-name" id="player-view-name">Gracz</span>
+            <span class="player-table-name">Stół #<span id="player-view-room">----</span></span>
+          </div>
+        </div>
+
+        <div class="player-chips-display">
+          <span class="label">TWOJE ŻETONY</span>
+          <div class="chips-counter">
+            <span class="chip-icon-small">🟡</span>
+            <span id="player-view-balance" class="balance-value">1 000</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Player Betting Table Area -->
+      <div class="player-table-felt">
+        <div class="bet-status-banner" id="player-status-banner">
+          Czekam na otwarcie zakładów...
+        </div>
+
+        <!-- Active Bets Slots (Supports Split Hand 1 and Hand 2) -->
+        <div class="bet-slots-container">
+          <!-- Hand 1 Slot -->
+          <div class="bet-slot active-slot" id="bet-slot-1">
+            <div class="bet-slot-label">TWÓJ ZAKŁAD</div>
+            <div class="bet-chip-stack" id="bet-stack-1">
+              <span class="empty-bet-hint">Dotknij żetony poniżej</span>
+            </div>
+            <div class="bet-amount-tag" id="bet-amount-1">0</div>
+          </div>
+
+          <!-- Hand 2 Slot (Hidden until Split) -->
+          <div class="bet-slot hidden" id="bet-slot-2">
+            <div class="bet-slot-label">SPLIT (RĘKA 2)</div>
+            <div class="bet-chip-stack" id="bet-stack-2"></div>
+            <div class="bet-amount-tag" id="bet-amount-2">0</div>
+          </div>
+        </div>
+
+        <!-- Floating Result Banner on Win/Loss -->
+        <div id="player-round-result" class="result-banner hidden"></div>
+      </div>
+
+      <!-- Player In-Hand Action Bar (Double, Split, Clear) -->
+      <div class="player-actions-toolbar">
+        <button id="btn-player-double" class="btn-action-special" disabled>
+          <span class="btn-action-icon">✖️2</span>
+          <span>Double</span>
+        </button>
+        <button id="btn-player-split" class="btn-action-special" disabled>
+          <span class="btn-action-icon">✂️</span>
+          <span>Split</span>
+        </button>
+        <button id="btn-player-clear" class="btn-action-special">
+          <span class="btn-action-icon">↩️</span>
+          <span>Wyczyść</span>
+        </button>
+        <button id="btn-player-repeat" class="btn-action-special">
+          <span class="btn-action-icon">🔁</span>
+          <span>Powtórz</span>
+        </button>
+      </div>
+
+      <!-- Chips Rack (Bottom Interactive Drawer) -->
+      <footer class="player-chip-rack">
+        <div class="chip-rack-header">
+          <span>Stawianie żetonów:</span>
+          <button id="btn-player-confirm-bet" class="btn-confirm-bet" disabled>
+            <span>POTWIERDŹ ZAKŁAD</span>
+          </button>
+        </div>
+
+        <div class="chips-container" id="chips-selector">
+          <button class="casino-chip chip-10" data-value="10">
+            <div class="chip-inner"><span>10</span></div>
+          </button>
+          <button class="casino-chip chip-25" data-value="25">
+            <div class="chip-inner"><span>25</span></div>
+          </button>
+          <button class="casino-chip chip-50" data-value="50">
+            <div class="chip-inner"><span>50</span></div>
+          </button>
+          <button class="casino-chip chip-100" data-value="100">
+            <div class="chip-inner"><span>100</span></div>
+          </button>
+          <button class="casino-chip chip-500" data-value="500">
+            <div class="chip-inner"><span>500</span></div>
+          </button>
+        </div>
+      </footer>
+    </section>
+
+    <!-- 6. QR CODE / SHARE MODAL -->
+    <div id="modal-qr" class="modal-overlay hidden">
+      <div class="modal-card">
+        <button class="modal-close" id="btn-close-qr">&times;</button>
+        <div class="modal-header">
+          <h3>Zaproś Graczy do Stołu</h3>
+          <p>Gracze mogą po prostu otworzyć aparat w telefonie i nakierować na kod QR</p>
+        </div>
+
+        <div class="qr-box">
+          <div id="qr-code-canvas"></div>
+        </div>
+
+        <div class="room-code-badge">
+          <span>KOD POKOJU:</span>
+          <strong id="modal-room-code">----</strong>
+        </div>
+
+        <div class="share-link-group">
+          <input type="text" id="input-share-url" readonly>
+          <button id="btn-copy-url" class="btn-secondary">Kopiuj Link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. REBUY / EDIT CHIPS MODAL (For Dealer) -->
+    <div id="modal-rebuy" class="modal-overlay hidden">
+      <div class="modal-card">
+        <button class="modal-close" id="btn-close-rebuy">&times;</button>
+        <div class="modal-header">
+          <h3>Zarządzaj Żetonami Gracza</h3>
+          <p id="rebuy-player-name">Gracz: ...</p>
+        </div>
+
+        <div class="rebuy-current-balance">
+          <span>Aktualne saldo:</span>
+          <strong id="rebuy-current-chips">0</strong>
+        </div>
+
+        <div class="quick-rebuy-buttons">
+          <button class="btn-rebuy-add" data-amount="250">+250</button>
+          <button class="btn-rebuy-add" data-amount="500">+500</button>
+          <button class="btn-rebuy-add" data-amount="1000">+1 000</button>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+          <label for="input-custom-chips">Lub wpisz nową kwotę:</label>
+          <input type="number" id="input-custom-chips" step="10">
+        </div>
+
+        <div class="modal-action-row">
+          <button id="btn-confirm-rebuy" class="btn-primary">Zapisz Saldo</button>
+          <button id="btn-kick-player" class="btn-danger">Usuń ze Stołu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. STATS MODAL -->
+    <div id="modal-stats" class="modal-overlay hidden">
+      <div class="modal-card">
+        <button class="modal-close" id="btn-close-stats">&times;</button>
+        <div class="modal-header">
+          <h3>Statystyki Sesji</h3>
+          <p>Podsumowanie gry przy stole</p>
+        </div>
+
+        <div id="stats-summary-content" class="stats-table-wrapper">
+          <!-- Dynamically populated stats -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Overlay -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/peer-manager.js"></script>
+  <script src="js/game-state.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
