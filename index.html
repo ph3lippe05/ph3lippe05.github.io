@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Blackjack Companion - Wirtualne Żetony do Gry</title>
-  <meta name="description" content="Darmowy wirtualny bankroll i żetony do gry w blackjacka ze znajomymi. Brak backendu, dołączanie kodem QR.">
+  <meta name="description"
+    content="Darmowy wirtualny bankroll i żetony do gry w blackjacka ze znajomymi. Brak backendu, dołączanie kodem QR.">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <!-- PeerJS & QRCode CDN -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <!-- Background Casino Felt & Ambience -->
   <div class="felt-background"></div>
@@ -24,12 +29,18 @@
 
   <!-- Main Container -->
   <div id="app" class="app-container">
-    
+
     <!-- 1. WELCOME SCREEN -->
     <section id="screen-welcome" class="screen active">
+      <div class="welcome-topbar">
+        <button id="btn-welcome-settings" class="btn-pill btn-settings-pill" title="Ustawienia motywu i gry">
+          <span>⚙️ Opcje & Motyw</span>
+        </button>
+      </div>
+
       <header class="hero-header">
         <div class="casino-badge">BLACKJACK TABLE COMPANION</div>
-        <h1 class="logo-title">21<span class="gold-text">CHIPS</span></h1>
+        <h1 class="logo-title">OPEN<span class="gold-text">CHIPS</span></h1>
         <p class="tagline">Wirtualne żetony do gry przy prawdziwym stole z kartami</p>
       </header>
 
@@ -71,6 +82,7 @@
         <div class="screen-header">
           <button class="btn-back" data-target="screen-welcome">← Wróć</button>
           <h2>Konfiguracja Stołu</h2>
+          <button type="button" class="btn-icon-circle btn-sub-settings" title="Ustawienia motywu">⚙️</button>
         </div>
 
         <form id="form-create-room">
@@ -122,31 +134,34 @@
         <div class="screen-header">
           <button class="btn-back" data-target="screen-welcome">← Wróć</button>
           <h2>Dołącz do Gry</h2>
+          <button type="button" class="btn-icon-circle btn-sub-settings" title="Ustawienia motywu">⚙️</button>
         </div>
 
         <form id="form-join-room">
           <div class="form-group">
             <label for="input-player-name">Twój Nick</label>
-            <input type="text" id="input-player-name" placeholder="np. Filip, James Bond..." maxlength="15" required autocomplete="off">
+            <input type="text" id="input-player-name" placeholder="Podaj nick..." maxlength="15" required
+              autocomplete="off">
           </div>
 
           <div class="form-group">
             <label>Wybierz Awatar</label>
             <div id="avatar-selector" class="avatar-grid">
-              <button type="button" class="avatar-btn active" data-avatar="😎">😎</button>
-              <button type="button" class="avatar-btn" data-avatar="🤠">🤠</button>
-              <button type="button" class="avatar-btn" data-avatar="🎩">🎩</button>
-              <button type="button" class="avatar-btn" data-avatar="🕵️">🕵️</button>
-              <button type="button" class="avatar-btn" data-avatar="🦁">🦁</button>
-              <button type="button" class="avatar-btn" data-avatar="🐺">🐺</button>
-              <button type="button" class="avatar-btn" data-avatar="🦊">🦊</button>
-              <button type="button" class="avatar-btn" data-avatar="👑">👑</button>
+              <button type="button" class="avatar-btn active" data-avatar="🐱">🐱</button>
+              <button type="button" class="avatar-btn" data-avatar="🐶">🐶</button>
+              <button type="button" class="avatar-btn" data-avatar="🐰">🐰</button>
+              <button type="button" class="avatar-btn" data-avatar="🐭">🐭</button>
+              <button type="button" class="avatar-btn" data-avatar="🐸">🐸</button>
+              <button type="button" class="avatar-btn" data-avatar="🐼">🐼</button>
+              <button type="button" class="avatar-btn" data-avatar="🐨">🐨</button>
+              <button type="button" class="avatar-btn" data-avatar="🐧">🐧</button>
             </div>
           </div>
 
           <div class="form-group">
             <label for="input-room-code">Kod Pokoju (4 znaki)</label>
-            <input type="text" id="input-room-code" placeholder="np. 7429" maxlength="10" required class="room-code-input" autocomplete="off" autocapitalize="characters">
+            <input type="text" id="input-room-code" placeholder="np. 7429" maxlength="10" required
+              class="room-code-input" autocomplete="off" autocapitalize="characters">
           </div>
 
           <button type="submit" class="btn-primary btn-block" id="btn-submit-join">
@@ -165,13 +180,18 @@
           <span class="role-badge">KRUPIER</span>
           <span class="table-title">Stół #<span id="dealer-room-display">----</span></span>
         </div>
-        
+
         <div class="topbar-actions">
+          <button id="btn-toggle-layout" class="btn-pill btn-layout-toggle" title="Przełącz układ stołu (Półkole / Siatka)">
+            <span id="layout-toggle-icon">🎪</span>
+            <span id="layout-toggle-text">Półkole</span>
+          </button>
           <button id="btn-toggle-sound" class="btn-icon-circle" title="Dźwięk">🔊</button>
           <button id="btn-open-qr" class="btn-pill btn-gold">
             <span>QR / Kod</span> 📲
           </button>
-          <button id="btn-table-settings" class="btn-icon-circle" title="Statystyki">📊</button>
+          <button id="btn-open-stats" class="btn-icon-circle" title="Statystyki sesji (📊)">📊</button>
+          <button id="btn-open-settings" class="btn-icon-circle" title="Ustawienia stołu i motyw (⚙️)">⚙️</button>
         </div>
       </header>
 
@@ -203,14 +223,20 @@
         </button>
       </div>
 
-      <!-- Active Players at the Table -->
-      <main class="table-players-container">
+      <!-- Active Players at the Table (Supports Semi-Circle and Grid layouts) -->
+      <main class="table-players-container layout-semicircle" id="table-players-container">
         <div class="table-felt-center">
           <div class="dealer-felt-logo">BLACKJACK PAYS 3 TO 2</div>
           <div class="dealer-felt-sub">Dealer must stand on 17 and draw to 16</div>
+          <div class="dealer-felt-insurance">INSURANCE PAYS 2 TO 1</div>
         </div>
 
-        <div id="dealer-players-list" class="dealer-players-grid">
+        <!-- Felt Arc Line Overlay for Authentic Semi-Circle Table -->
+        <div class="table-arc-line" id="table-arc-line">
+          <span class="table-arc-text">INSURANCE PAYS 2 TO 1</span>
+        </div>
+
+        <div id="dealer-players-list" class="dealer-players-semicircle">
           <!-- Dynamically injected player cards -->
           <div class="no-players-placeholder">
             <div class="pulse-ring"></div>
@@ -233,12 +259,15 @@
           </div>
         </div>
 
-        <div class="player-chips-display">
-          <span class="label">TWOJE ŻETONY</span>
-          <div class="chips-counter">
-            <span class="chip-icon-small">🟡</span>
-            <span id="player-view-balance" class="balance-value">1 000</span>
+        <div class="player-topbar-right">
+          <div class="player-chips-display">
+            <span class="label">TWOJE ŻETONY</span>
+            <div class="chips-counter">
+              <span class="chip-icon-small">🟡</span>
+              <span id="player-view-balance" class="balance-value">1 000</span>
+            </div>
           </div>
+          <button id="btn-player-settings" class="btn-icon-circle" title="Ustawienia motywu (⚙️)">⚙️</button>
         </div>
       </header>
 
@@ -271,7 +300,7 @@
         <div id="player-round-result" class="result-banner hidden"></div>
       </div>
 
-      <!-- Player In-Hand Action Bar (Double, Split, Clear) -->
+      <!-- Player In-Hand Action Bar (Double, Split, Clear, Repeat) -->
       <div class="player-actions-toolbar">
         <button id="btn-player-double" class="btn-action-special" disabled>
           <span class="btn-action-icon">✖️2</span>
@@ -294,26 +323,26 @@
       <!-- Chips Rack (Bottom Interactive Drawer) -->
       <footer class="player-chip-rack">
         <div class="chip-rack-header">
-          <span>Stawianie żetonów:</span>
+          <span class="chip-rack-title">Stawianie żetonów:</span>
           <button id="btn-player-confirm-bet" class="btn-confirm-bet" disabled>
             <span>POTWIERDŹ ZAKŁAD</span>
           </button>
         </div>
 
         <div class="chips-container" id="chips-selector">
-          <button class="casino-chip chip-10" data-value="10">
+          <button class="casino-chip chip-10" data-value="10" aria-label="10 żetonów">
             <div class="chip-inner"><span>10</span></div>
           </button>
-          <button class="casino-chip chip-25" data-value="25">
+          <button class="casino-chip chip-25" data-value="25" aria-label="25 żetonów">
             <div class="chip-inner"><span>25</span></div>
           </button>
-          <button class="casino-chip chip-50" data-value="50">
+          <button class="casino-chip chip-50" data-value="50" aria-label="50 żetonów">
             <div class="chip-inner"><span>50</span></div>
           </button>
-          <button class="casino-chip chip-100" data-value="100">
+          <button class="casino-chip chip-100" data-value="100" aria-label="100 żetonów">
             <div class="chip-inner"><span>100</span></div>
           </button>
-          <button class="casino-chip chip-500" data-value="500">
+          <button class="casino-chip chip-500" data-value="500" aria-label="500 żetonów">
             <div class="chip-inner"><span>500</span></div>
           </button>
         </div>
@@ -392,14 +421,101 @@
       </div>
     </div>
 
+    <!-- 9. SETTINGS MODAL -->
+    <div id="modal-settings" class="modal-overlay hidden">
+      <div class="modal-card settings-modal-card">
+        <button class="modal-close" id="btn-close-settings">&times;</button>
+        <div class="modal-header">
+          <h3>⚙️ Opcje & Motyw Stołu</h3>
+          <p>Dostosuj motyw kolorystyczny, układ stołu i efekty</p>
+        </div>
+
+        <!-- Color Theme Selection -->
+        <div class="settings-section">
+          <label class="settings-label">Kolor sukna stołu:</label>
+          <div class="theme-selector-grid" id="theme-selector">
+            <button type="button" class="theme-btn theme-green active" data-theme="green">
+              <span class="theme-dot" style="background: #10b981; box-shadow: 0 0 10px #10b981;"></span>
+              <div class="theme-btn-info">
+                <span class="theme-name">Zielony</span>
+                <small>Szmaragd (Domyślny)</small>
+              </div>
+            </button>
+            <button type="button" class="theme-btn theme-purple" data-theme="purple">
+              <span class="theme-dot" style="background: #a855f7; box-shadow: 0 0 10px #a855f7;"></span>
+              <div class="theme-btn-info">
+                <span class="theme-name">Fioletowy</span>
+                <small>Królewski Velvet</small>
+              </div>
+            </button>
+            <button type="button" class="theme-btn theme-red" data-theme="red">
+              <span class="theme-dot" style="background: #ef4444; box-shadow: 0 0 10px #ef4444;"></span>
+              <div class="theme-btn-info">
+                <span class="theme-name">Czerwony</span>
+                <small>Monte Carlo Rubin</small>
+              </div>
+            </button>
+            <button type="button" class="theme-btn theme-blue" data-theme="blue">
+              <span class="theme-dot" style="background: #3b82f6; box-shadow: 0 0 10px #3b82f6;"></span>
+              <div class="theme-btn-info">
+                <span class="theme-name">Niebieski</span>
+                <small>Królewski Szafir</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dealer Layout Selection -->
+        <div class="settings-section" id="settings-layout-section">
+          <label class="settings-label">Układ graczy (Widok Krupiera):</label>
+          <div class="layout-selector-grid" id="layout-selector">
+            <button type="button" class="layout-btn active" data-layout="semicircle">
+              <span class="layout-icon">🎪</span>
+              <div class="layout-info">
+                <strong>Półkole Stołu</strong>
+                <small>Prawdziwy kasynowy łuk</small>
+              </div>
+            </button>
+            <button type="button" class="layout-btn" data-layout="grid">
+              <span class="layout-icon">🔲</span>
+              <div class="layout-info">
+                <strong>Siatka Kafelków</strong>
+                <small>Kompaktowe rzędy</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Audio & Haptics -->
+        <div class="settings-section">
+          <label class="settings-label">Dźwięki i haptyka:</label>
+          <div class="settings-toggles">
+            <label class="toggle-row">
+              <span>Efekty dźwiękowe (żetony, wygrane)</span>
+              <input type="checkbox" id="setting-toggle-sound" checked>
+            </label>
+            <label class="toggle-row">
+              <span>Wibracje na telefonie (haptyka)</span>
+              <input type="checkbox" id="setting-toggle-vibration" checked>
+            </label>
+          </div>
+        </div>
+
+        <button type="button" class="btn-primary btn-block" id="btn-save-settings">
+          <span>Zapisz i Zamknij</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Toast Notification Overlay -->
     <div id="toast-container" class="toast-container"></div>
   </div>
 
-  <!-- Scripts -->
-  <script src="js/audio.js"></script>
-  <script src="js/peer-manager.js"></script>
-  <script src="js/game-state.js"></script>
-  <script src="js/app.js"></script>
+    <!-- Scripts -->
+    <script src="js/audio.js"></script>
+    <script src="js/peer-manager.js"></script>
+    <script src="js/game-state.js"></script>
+    <script src="js/app.js"></script>
 </body>
+
 </html>

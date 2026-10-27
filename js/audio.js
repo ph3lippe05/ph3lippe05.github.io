@@ -6,7 +6,8 @@
 class SoundController {
   constructor() {
     this.ctx = null;
-    this.isMuted = false;
+    this.isMuted = localStorage.getItem('bj_sound') === 'false';
+    this.vibrationEnabled = localStorage.getItem('bj_vibration') !== 'false';
   }
 
   init() {
@@ -23,10 +24,22 @@ class SoundController {
 
   toggleMute() {
     this.isMuted = !this.isMuted;
+    localStorage.setItem('bj_sound', (!this.isMuted).toString());
     return !this.isMuted;
   }
 
+  setMuted(muted) {
+    this.isMuted = muted;
+    localStorage.setItem('bj_sound', (!muted).toString());
+  }
+
+  setVibrationEnabled(enabled) {
+    this.vibrationEnabled = enabled;
+    localStorage.setItem('bj_vibration', enabled.toString());
+  }
+
   vibrate(pattern = 15) {
+    if (!this.vibrationEnabled) return;
     if ('vibrate' in navigator) {
       try {
         navigator.vibrate(pattern);

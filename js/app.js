@@ -21,11 +21,75 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     tableStateCache: null,
     qrCodeInstance: null,
-    selectedPlayerForRebuy: null
+    selectedPlayerForRebuy: null,
+    theme: localStorage.getItem('bj_theme') || 'green',
+    dealerLayout: localStorage.getItem('bj_dealer_layout') || 'semicircle'
   };
 
   // Persist player ID
   localStorage.setItem('bj_player_id', App.playerData.id);
+
+  // Theme Management
+  function setTheme(themeName) {
+    const validThemes = ['green', 'purple', 'red', 'blue'];
+    if (!validThemes.includes(themeName)) themeName = 'green';
+    App.theme = themeName;
+    document.body.setAttribute('data-theme', themeName);
+    localStorage.setItem('bj_theme', themeName);
+
+    // Update active state in settings modal
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === themeName);
+    });
+  }
+
+  // Dealer Table Layout Management
+  function setDealerLayout(layout) {
+    if (layout !== 'semicircle' && layout !== 'grid') layout = 'semicircle';
+    App.dealerLayout = layout;
+    localStorage.setItem('bj_dealer_layout', layout);
+
+    const container = document.getElementById('table-players-container');
+    const playersListEl = document.getElementById('dealer-players-list');
+    const layoutToggleBtn = document.getElementById('btn-toggle-layout');
+    const layoutIcon = document.getElementById('layout-toggle-icon');
+    const layoutText = document.getElementById('layout-toggle-text');
+
+    if (container) {
+      container.classList.toggle('layout-semicircle', layout === 'semicircle');
+      container.classList.toggle('layout-grid', layout === 'grid');
+    }
+
+    if (playersListEl) {
+      playersListEl.classList.toggle('dealer-players-semicircle', layout === 'semicircle');
+      playersListEl.classList.toggle('dealer-players-grid', layout === 'grid');
+    }
+
+    if (layoutIcon && layoutText) {
+      if (layout === 'semicircle') {
+        layoutIcon.textContent = '🎪';
+        layoutText.textContent = 'Półkole';
+        if (layoutToggleBtn) layoutToggleBtn.title = 'Przełącz na widok siatki kafelków';
+      } else {
+        layoutIcon.textContent = '🔲';
+        layoutText.textContent = 'Siatka';
+        if (layoutToggleBtn) layoutToggleBtn.title = 'Przełącz na widok półkola stołu';
+      }
+    }
+
+    // Update active button in settings modal
+    document.querySelectorAll('#layout-selector .layout-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.layout === layout);
+    });
+
+    if (App.role === 'DEALER' && App.table) {
+      renderDealerTable();
+    }
+  }
+
+  // Apply saved theme and layout on startup
+  setTheme(App.theme);
+  setDealerLayout(App.dealerLayout);
 
   // DOM Elements
   const screens = {
@@ -411,10 +475,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     container.innerHTML = '';
 
-    playersList.forEach(player => {
+    playersList.forEach((player, pIdx) => {
       const card = document.createElement('div');
       const hasBet = player.hands.some(h => h.bet > 0);
-      card.className = `player-card ${hasBet ? 'has-bet' : ''}`;
+      const isSemicircle = App.dealerLayout === 'semicircle';
+      card.className = `player-card ${hasBet ? 'has-bet' : ''} ${isSemicircle ? 'player-card-semicircle' : ''}`;
+
+      // Calculate arc positioning for semicircle mode
+      if (isSemicircle) {
+        const N = playersList.length;
+        let angle = 90;
+        if (N === 1) {
+          angle = 90;
+        } else if (N === 2) {
+          angle = pIdx === 0 ? 55 : 125;
+        } else if (N === 3) {
+          angle = 45 + pIdx * 45;
+        } else if (N === 4) {
+          angle = 35 + pIdx * 36.6;
+        } else {
+          const startAngle = 22;
+          const endAngle = 158;
+          angle = startAngle + (pIdx * (endAngle - startAngle)) / (N - 1);
+        }
+
+        const rad = (angle * Math.PI) / 180;
+        const posX = 50 - Math.cos(rad) * 38;
+        const posY = 18 + Math.sin(rad) * 58;
+        const rot = (angle - 90) * 0.22;
+
+        card.style.setProperty('--arc-x', `${posX.toFixed(2)}%`);
+        card.style.setProperty('--arc-y', `${posY.toFixed(2)}%`);
+        card.style.setProperty('--arc-rot', `${rot.toFixed(2)}deg`);
+        card.dataset.seatIndex = (pIdx + 1).toString();
+      }
 
       // Card Header
       const header = document.createElement('div');
@@ -423,6 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="player-identity">
           <div class="player-avatar">${player.avatar}</div>
           <div class="player-details">
+            <span class="player-seat-tag">Miejsce #${pIdx + 1}</span>
             <h4>
               ${escapeHtml(player.name)}
               <span class="player-connection-dot ${player.online ? '' : 'offline'}" title="${player.online ? 'Online' : 'Offline'}"></span>
@@ -624,15 +719,125 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Session Stats Modal
-  document.getElementById('btn-table-settings').addEventListener('click', () => {
+  document.getElementById('btn-open-stats')?.addEventListener('click', () => {
     if (App.role !== 'DEALER' || !App.table) return;
     window.sounds.playClick();
     renderStatsModal();
     document.getElementById('modal-stats').classList.remove('hidden');
   });
 
-  document.getElementById('btn-close-stats').addEventListener('click', () => {
+  document.getElementById('btn-close-stats')?.addEventListener('click', () => {
     document.getElementById('modal-stats').classList.add('hidden');
+  });
+
+  document.getElementById('modal-stats')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal-stats')) {
+      document.getElementById('modal-stats').classList.add('hidden');
+    }
+  });
+
+  // ==========================================================================
+  // SETTINGS & THEME MODAL
+  // ==========================================================================
+  const modalSettings = document.getElementById('modal-settings');
+
+  function openSettingsModal() {
+    window.sounds.playClick();
+    // Sync active theme buttons
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === App.theme);
+    });
+    // Sync active layout buttons
+    document.querySelectorAll('#layout-selector .layout-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.layout === App.dealerLayout);
+    });
+    // Sync audio and vibration toggles
+    const soundToggle = document.getElementById('setting-toggle-sound');
+    const vibToggle = document.getElementById('setting-toggle-vibration');
+    if (soundToggle) soundToggle.checked = !window.sounds.isMuted;
+    if (vibToggle) vibToggle.checked = window.sounds.vibrationEnabled;
+
+    modalSettings.classList.remove('hidden');
+  }
+
+  function closeSettingsModal() {
+    window.sounds.playClick();
+    modalSettings.classList.add('hidden');
+  }
+
+  // Open settings buttons across all screens
+  const settingsButtons = [
+    document.getElementById('btn-welcome-settings'),
+    document.getElementById('btn-open-settings'),
+    document.getElementById('btn-player-settings'),
+    ...document.querySelectorAll('.btn-sub-settings')
+  ];
+
+  settingsButtons.forEach(btn => {
+    if (btn) {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openSettingsModal();
+      });
+    }
+  });
+
+  document.getElementById('btn-close-settings')?.addEventListener('click', closeSettingsModal);
+  document.getElementById('btn-save-settings')?.addEventListener('click', () => {
+    closeSettingsModal();
+    showToast('Zapisano ustawienia stołu');
+  });
+
+  modalSettings?.addEventListener('click', (e) => {
+    if (e.target === modalSettings) {
+      closeSettingsModal();
+    }
+  });
+
+  // Theme change buttons
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.dataset.theme;
+      setTheme(theme);
+      window.sounds.playChip();
+      const themeNames = {
+        green: 'Zielony (Szmaragd)',
+        purple: 'Fioletowy (Królewski Velvet)',
+        red: 'Czerwony (Monte Carlo Rubin)',
+        blue: 'Niebieski (Królewski Szafir)'
+      };
+      showToast(`Wybrano motyw: ${themeNames[theme] || theme}`);
+    });
+  });
+
+  // Layout selection inside settings modal
+  document.querySelectorAll('#layout-selector .layout-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const layout = btn.dataset.layout;
+      setDealerLayout(layout);
+      window.sounds.playClick();
+      showToast(layout === 'semicircle' ? 'Układ stołu: Półkole kasynowe 🎪' : 'Układ stołu: Siatka kafelków 🔲');
+    });
+  });
+
+  // Quick Layout Toggle button in Dealer Topbar
+  document.getElementById('btn-toggle-layout')?.addEventListener('click', () => {
+    const nextLayout = App.dealerLayout === 'semicircle' ? 'grid' : 'semicircle';
+    setDealerLayout(nextLayout);
+    window.sounds.playClick();
+    showToast(nextLayout === 'semicircle' ? 'Układ stołu: Półkole kasynowe 🎪' : 'Układ stołu: Siatka kafelków 🔲');
+  });
+
+  // Audio and Haptics settings
+  document.getElementById('setting-toggle-sound')?.addEventListener('change', (e) => {
+    window.sounds.setMuted(!e.target.checked);
+    const soundBtn = document.getElementById('btn-toggle-sound');
+    if (soundBtn) soundBtn.textContent = e.target.checked ? '🔊' : '🔇';
+  });
+
+  document.getElementById('setting-toggle-vibration')?.addEventListener('change', (e) => {
+    window.sounds.setVibrationEnabled(e.target.checked);
+    if (e.target.checked) window.sounds.vibrate(25);
   });
 
   function renderStatsModal() {
